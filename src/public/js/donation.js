@@ -415,7 +415,7 @@ async function donate() {
   const campaignId = document.getElementById('campaign-select').value;
   const amount = document.getElementById('donation-amount').value;
   
-  if (!campaignId || !amount || amount <= 0) {
+  if (!campaignId || !amount || parseFloat(amount) <= 0) {
     showToast('Please select a campaign and enter a valid amount', 'error');
     return;
   }
@@ -426,19 +426,22 @@ async function donate() {
     donateButton.disabled = true;
     donateButton.classList.add('loading');
 
+    // Convert amount to string first to ensure proper handling
     const amountWei = web3.utils.toWei(amount.toString(), 'ether');
     
+    // Ensure gasEstimate is handled as a regular number
     const gasEstimate = await contract.methods.donate(campaignId)
       .estimateGas({ 
         from: userAccount,
-        value: amountWei.toString()
+        value: amountWei.toString() // Ensure value is passed as string
       });
     
-    const gasLimit = Math.round(gasEstimate * 1.2);
+    // Calculate gas limit as a regular number
+    const gasLimit = Math.ceil(Number(gasEstimate) * 1.2).toString();
     
     await contract.methods.donate(campaignId).send({
       from: userAccount,
-      value: amountWei.toString(),
+      value: amountWei.toString(), // Ensure value is passed as string
       gas: gasLimit
     });
     
